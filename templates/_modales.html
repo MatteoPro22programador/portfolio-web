@@ -1,0 +1,92 @@
+{# Ventanas (modales) del modo edición. Un solo JS las rellena con los datos del elemento. #}
+
+{% macro campo(nombre, etiqueta, tipo="text", req=False, extra="") %}
+<label class="campo">
+    <span>{{ etiqueta }}</span>
+    {% if tipo == "textarea" %}
+    <textarea name="{{ nombre }}" rows="4" {{ "required" if req }}></textarea>
+    {% else %}
+    <input type="{{ tipo }}" name="{{ nombre }}" {{ "required" if req }} {{ extra|safe }}>
+    {% endif %}
+</label>
+{% endmacro %}
+
+{% macro modal(id, nombre, accion) %}
+<dialog id="{{ id }}" class="modal" data-nombre="{{ nombre }}">
+    <form method="post" action="{{ accion }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="id">
+        <h3 class="modal-titulo"></h3>
+        {{ caller() }}
+        <div class="modal-botones">
+            <button type="button" class="btn btn-borde" data-cerrar>Cancelar</button>
+            <button class="btn">Guardar</button>
+        </div>
+    </form>
+</dialog>
+{% endmacro %}
+
+{% call modal("modal-perfil", "perfil", url_for("guardar_perfil")) %}
+    {{ campo("nombre", "Nombre", req=True) }}
+    {{ campo("titulo", "Título (ej: Full Stack Developer Jr)", req=True) }}
+    {{ campo("descripcion", "Acerca de mí", "textarea") }}
+    {{ campo("email", "Email", "email") }}
+    {{ campo("iframe_url", "Link del iframe (mapa, video embed...)", "url") }}
+    {{ campo("foto", "Foto de perfil (png, jpg, webp)", "file", extra='accept="image/*"') }}
+    {{ campo("banner", "Banner (png, jpg, webp)", "file", extra='accept="image/*"') }}
+    {{ campo("cv", "CV en PDF", "file", extra='accept="application/pdf"') }}
+{% endcall %}
+
+{% call modal("modal-experiencia", "experiencia", url_for("guardar", seccion="experiencia")) %}
+    {{ campo("empresa", "Empresa", req=True) }}
+    {{ campo("puesto", "Puesto", req=True) }}
+    {{ campo("periodo", "Período (ej: 2024 - 2025)") }}
+    {{ campo("descripcion", "Descripción", "textarea") }}
+    {{ campo("logo", "Logo de la empresa", "file", extra='accept="image/*"') }}
+{% endcall %}
+
+{% call modal("modal-educacion", "estudio", url_for("guardar", seccion="educacion")) %}
+    {{ campo("institucion", "Institución", req=True) }}
+    {{ campo("titulo", "Carrera, título o curso", req=True) }}
+    {{ campo("periodo", "Período o año") }}
+    {{ campo("descripcion", "Descripción", "textarea") }}
+    {{ campo("logo", "Logo de la institución", "file", extra='accept="image/*"') }}
+{% endcall %}
+
+{% call modal("modal-skill", "habilidad", url_for("guardar", seccion="skills")) %}
+    {{ campo("nombre", "Nombre", req=True) }}
+    {{ campo("nivel", "Nivel (0 a 100)", "number", req=True, extra='min="0" max="100"') }}
+    <label class="campo">
+        <span>Tipo</span>
+        <select name="tipo">
+            <option value="hard">Hard skill</option>
+            <option value="soft">Soft skill</option>
+            <option value="idioma">Idioma</option>
+        </select>
+    </label>
+{% endcall %}
+
+{% call modal("modal-proyecto", "proyecto", url_for("guardar", seccion="proyectos")) %}
+    {{ campo("nombre", "Nombre del proyecto", req=True) }}
+    {{ campo("fecha", "Fecha de realización", "date") }}
+    {{ campo("descripcion", "Descripción", "textarea") }}
+    {{ campo("link", "Link a la evidencia (GitHub, demo...)", "url") }}
+    {{ campo("imagen", "Imagen del proyecto", "file", extra='accept="image/*"') }}
+{% endcall %}
+
+{% call modal("modal-red", "red social", url_for("guardar", seccion="redes")) %}
+    {{ campo("nombre", "Nombre (ej: GitHub)", req=True) }}
+    {{ campo("url", "Link", "url", req=True) }}
+    <label class="campo">
+        <span>Ícono</span>
+        <select name="icono">
+            <option value="fa-brands fa-github">GitHub</option>
+            <option value="fa-brands fa-linkedin">LinkedIn</option>
+            <option value="fa-brands fa-instagram">Instagram</option>
+            <option value="fa-brands fa-x-twitter">X (Twitter)</option>
+            <option value="fa-brands fa-youtube">YouTube</option>
+            <option value="fa-brands fa-whatsapp">WhatsApp</option>
+            <option value="fa-solid fa-globe">Sitio web</option>
+        </select>
+    </label>
+{% endcall %}

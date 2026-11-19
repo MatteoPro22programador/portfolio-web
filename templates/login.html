@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block titulo %}Login · {{ perfil.nombre }}{% endblock %}
+
+{% block contenido %}
+<main class="login-pagina">
+    <form method="post" class="login-caja" novalidate>
+        {{ form.hidden_tag() }}  {# token CSRF de Flask-WTF #}
+
+        <h1>Iniciar sesión</h1>
+        <p class="suave">Ingresá para editar el portfolio.</p>
+
+        <label class="campo">
+            <span>{{ form.username.label.text }}</span>
+            {{ form.username(autocomplete="username", autofocus=true) }}
+        </label>
+
+        <label class="campo">
+            <span>{{ form.password.label.text }}</span>
+            {{ form.password(autocomplete="current-password") }}
+        </label>
+
+        {% for campo in (form.username, form.password) %}
+            {% for error in campo.errors %}
+            <p class="mensaje mensaje-error">{{ campo.label.text }}: {{ error }}</p>
+            {% endfor %}
+        {% endfor %}
+
+        <button class="btn btn-ancho">Entrar</button>
+        <a href="{{ url_for('index') }}" class="volver">&larr; Volver al portfolio</a>
+    </form>
+</main>
+{% endblock %}

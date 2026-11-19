@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ perfil.nombre }} · {{ perfil.titulo }}{% endblock %}
+
+{# Controles de edición para cada elemento #}
+{% macro controles(modal, item, seccion) %}
+<div class="controles">
+    <button type="button" class="btn-icon" data-abrir="{{ modal }}" data-item='{{ item|tojson }}' title="Editar">
+        <i class="fa-solid fa-pencil"></i>
+    </button>
+    <form method="post" action="{{ url_for('eliminar', seccion=seccion, item_id=item.id) }}"
+          onsubmit="return confirm('¿Seguro que querés eliminarlo?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn-icon btn-icon-borrar" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>
+    </form>
+</div>
+{% endmacro %}
+
+{# Cabecera de sección con botón para agregar #}
+{% macro cabecera(titulo, modal, admin) %}
+<div class="sec-cab">
+    <h2>{{ titulo }}</h2>
+    {% if admin %}
+    <button type="button" class="btn btn-borde btn-sm" data-abrir="{{ modal }}">
+        <i class="fa-solid fa-plus"></i> Agregar
+    </button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% block contenido %}
+<main>
+
+    <!-- ===== BANNER ===== -->
+    <section class="banner">
+        <img src="{{ url_for('static', filename=perfil.banner or 'img/banner.svg') }}" alt="Banner">
+        {% if admin %}
+        <button type="button" class="btn-icon banner-editar" data-abrir="modal-perfil" data-item='{{ perfil|tojson }}' title="Editar banner">
+            <i class="fa-solid fa-pencil"></i>
+        </button>
+        {% endif %}
+    </section>
+
+    <!-- ===== ACERCA DE ===== -->
+    <section class="perfil contenedor reveal" id="perfil">
+        <div class="perfil-lado">
+            <div class="foto-caja">
+                <img class="foto" src="{{ url_for('static', filename=perfil.foto or 'img/avatar.svg') }}" alt="Foto de perfil">
+                {% if admin %}
+                <button type="button" class="btn-icon foto-editar" data-abrir="modal-perfil" data-item='{{ perfil|tojson }}' title="Editar perfil">
+                    <i class="fa-solid fa-pencil"></i>
+                </button>
+                {% endif %}
+            </div>
+            <h1 class="perfil-nombre">{{ perfil.nombre }}</h1>
+            <p class="perfil-titulo">{{ perfil.titulo }}</p>
+            {% if perfil.cv %}
+            <a href="{{ url_for('descargar_cv') }}" class="btn btn-sm"><i class="fa-solid fa-download"></i> Descargar CV</a>
+            {% endif %}
+        </div>
+
+        <div class="perfil-texto">
+            <div class="sec-cab">
+                <h2>Acerca de mí</h2>
+                {% if admin %}
+                <button type="button" class="btn-icon" data-abrir="modal-perfil" data-item='{{ perfil|tojson }}' title="Editar perfil">
+                    <i class="fa-solid fa-pencil"></i>
+                </button>
+                {% endif %}
+            </div>
+            <p class="texto-largo">{{ perfil.descripcion }}</p>
+        </div>
+    </section>
+
+    <!-- ===== EXPERIENCIA ===== -->
+    <section class="seccion contenedor reveal" id="experiencia">
+        {{ cabecera("Experiencia", "modal-experiencia", admin) }}
+        {% for e in experiencias %}
+        <article class="item">
+            <div class="item-logo">
+                {% if e.logo %}<img src="{{ url_for('static', filename=e.logo) }}" alt="{{ e.empresa }}">
+                {% else %}<i class="fa-solid fa-briefcase"></i>{% endif %}
+            </div>
+            <div class="item-info">
+                <h3>{{ e.puesto }}</h3>
+                <p class="item-sub">{{ e.empresa }}{% if e.periodo %} · {{ e.periodo }}{% endif %}</p>
+                <p class="texto-largo">{{ e.descripcion }}</p>
+            </div>
+            {% if admin %}{{ controles("modal-experiencia", e, "experiencia") }}{% endif %}
+        </article>
+        {% else %}
+        <p class="vacio">Todavía no hay experiencia laboral cargada. Este espacio queda reservado para cuando la tenga.</p>
+        {% endfor %}
+    </section>
+
+    <!-- ===== EDUCACIÓN ===== -->
+    <section class="seccion contenedor reveal" id="educacion">
+        {{ cabecera("Educación", "modal-educacion", admin) }}
+        {% for e in estudios %}
+        <article class="item">
+            <div class="item-logo">
+                {% if e.logo %}<img src="{{ url_for('static', filename=e.logo) }}" alt="{{ e.institucion }}">
+                {% else %}<i class="fa-solid fa-graduation-cap"></i>{% endif %}
+            </div>
+            <div class="item-info">
+                <h3>{{ e.titulo }}</h3>
+                <p class="item-sub">{{ e.institucion }}{% if e.periodo %} · {{ e.periodo }}{% endif %}</p>
+                <p class="texto-largo">{{ e.descripcion }}</p>
+            </div>
+            {% if admin %}{{ controles("modal-educacion", e, "educacion") }}{% endif %}
+        </article>
+        {% else %}
+        <p class="vacio">Todavía no hay estudios cargados.</p>
+        {% endfor %}
+    </section>
+
+    <!-- ===== HARD & SOFT SKILLS (círculos animados) ===== -->
+    <section class="seccion contenedor reveal" id="skills">
+        {{ cabecera("Hard & Soft Skills", "modal-skill", admin) }}
+        {% for titulo, lista in skills_por_tipo if lista %}
+        <h3 class="skills-grupo">{{ titulo }}</h3>
+        <div class="skills">
+            {% for s in lista %}
+            <div class="skill" data-nivel="{{ s.nivel }}">
+                <div class="skill-circulo">
+                    <svg viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="skill-fondo" cx="60" cy="60" r="52"/>
+                        <circle class="skill-barra" cx="60" cy="60" r="52"/>
+                    </svg>
+                    <span class="skill-valor">{{ s.nivel }}%</span>
+                </div>
+                <p class="skill-nombre">{{ s.nombre }}</p>
+                {% if admin %}{{ controles("modal-skill", s, "skills") }}{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="vacio">Todavía no hay habilidades cargadas.</p>
+        {% endfor %}
+    </section>
+
+    <!-- ===== PROYECTOS ===== -->
+    <section class="seccion contenedor reveal" id="proyectos">
+        {{ cabecera("Proyectos", "modal-proyecto", admin) }}
+        <div class="proyectos">
+            {% for p in proyectos %}
+            <article class="proyecto">
+                {% if p.imagen %}
+                <img class="proyecto-img" src="{{ url_for('static', filename=p.imagen) }}" alt="{{ p.nombre }}">
+                {% endif %}
+                <div class="proyecto-cuerpo">
+                    <h3>{{ p.nombre }}</h3>
+                    {% if p.fecha_fmt %}<p class="item-sub"><i class="fa-regular fa-calendar"></i> {{ p.fecha_fmt }}</p>{% endif %}
+                    <p class="texto-largo">{{ p.descripcion }}</p>
+                    {% if p.link %}
+                    <a href="{{ p.link }}" target="_blank" rel="noopener" class="btn btn-sm">Ver proyecto</a>
+                    {% endif %}
+                </div>
+                {% if admin %}{{ controles("modal-proyecto", p, "proyectos") }}{% endif %}
+            </article>
+            {% else %}
+            <p class="vacio">Todavía no hay proyectos cargados.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- ===== CONTACTO (incluye un iframe) ===== -->
+    <section class="seccion contenedor reveal" id="contacto">
+        {{ cabecera("Contacto", "modal-red", admin) }}
+        <div class="contacto">
+            <div class="contacto-info">
+                {% if perfil.email %}
+                <p><i class="fa-solid fa-envelope"></i> <a href="mailto:{{ perfil.email }}">{{ perfil.email }}</a></p>
+                {% endif %}
+
+                {% if admin %}
+                <h3 class="skills-grupo">Redes sociales</h3>
+                {% for r in redes %}
+                <div class="red-fila">
+                    <span><i class="{{ r.icono }}"></i> {{ r.nombre }}</span>
+                    {{ controles("modal-red", r, "redes") }}
+                </div>
+                {% else %}
+                <p class="vacio">No hay redes cargadas.</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            {% if perfil.iframe_url %}
+            <iframe class="contacto-iframe" src="{{ perfil.iframe_url }}" title="Contenido incrustado" loading="lazy"></iframe>
+            {% endif %}
+        </div>
+    </section>
+</main>
+
+{% if admin %}
+    {% include "_modales.html" %}
+{% endif %}
+{% endblock %}
